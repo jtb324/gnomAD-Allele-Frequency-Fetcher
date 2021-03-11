@@ -24,7 +24,6 @@ def variant_getter(var_file: str) -> list:
 
 def run(args):
     """function that will run and get request from the gnomad website with"""
-    print(__name__)
     logger: object = create_logger(__name__, args.output)
 
     # removing any previous output file
