@@ -4,6 +4,7 @@ import pandas as pd
 import os
 import time
 import logging
+from json_fetcher.fetcher import fetch
 from loggers.log_formatter import create_logger
 import sys
 
@@ -15,31 +16,6 @@ def variant_getter(var_file: str) -> list:
     snp_list: list = var_df["SNP"].values.tolist()
 
     return snp_list
-
-
-def fetch(jsondata):
-    """function to fetch a json response from graphql
-    Parameters
-    __________
-    jsondata
-        dictionary contain the query parameters
-
-    Returns
-    _______
-    json
-        returns a json object containing the query parameters
-    int
-        if the program encounters an error then it will return -1
-    """
-    gnomad_website: str = "https://gnomad.broadinstitute.org/api"
-    headers: dict = {"Content-Type": "application/json"}
-    response = requests.post(gnomad_website, json=jsondata, headers=headers)
-    json = response.json()
-    if "errors" in json:
-
-        # raise Exception(str(json["errors"]))
-        return -1
-    return json
 
 
 def get_query(variant_id: str, genome: str, dataset_choice) -> dict:
@@ -61,7 +37,9 @@ def get_query(variant_id: str, genome: str, dataset_choice) -> dict:
 
     dataset_str: str = dataset_dict[dataset_choice]
 
-    logger.info(f"using the build corresponding to: {dataset_str}")
+    logger.info(
+        f"searching for variant, {variant_id}, in the dataset for the build corresponding to: {dataset_str}"
+    )
     fmt_graphql = """
     {
         variant(variantId: "%s", dataset: %s) {
@@ -183,9 +161,16 @@ def run(args):
 
     # asking the user if they want to use the build based on
     # GRch37 or GRCh38
-    dataset_choice: int = int(
-        input("which data set would you like to use. (1:gnomad_r2_1, 2:gnomad_r3): ")
-    )
+    try:
+        dataset_choice: int = int(
+            input(
+                "which data set would you like to use. (1 for gnomad_r2_1, 2 for gnomad_r3): "
+            )
+        )
+    except ValueError:
+        print("Value was not a valid integer. Program terminating...")
+        logger.error("user input was not a valid integer")
+        sys.exit(1)
 
     logger.info(f"Searching for frequencies in the {args.pop_code} population")
     # creating a counter so that I can pause the code every 10
