@@ -1,4 +1,6 @@
 *.log
 *.vscode
 *.xlsx
-test/
+testset/
+*__pycache__
+/loggers/__pycache__/*

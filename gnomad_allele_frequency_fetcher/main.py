@@ -1,13 +1,11 @@
-from loggers.log_formatter import create_logger
 import requests
 import argparse
 import pandas as pd
 import os
 import time
 import logging
+from loggers.log_formatter import create_logger
 import sys
-
-import loggers
 
 
 def variant_getter(var_file: str) -> list:
@@ -95,7 +93,7 @@ def get_query(variant_id: str, genome: str, dataset_choice) -> dict:
     return req_variant_dict
 
 
-def get_variants(response_subset: list, pop_code: str) -> tuple:
+def get_allele_counts(response_subset: list, pop_code: str) -> tuple:
     """function to get the allele count and the total allele count for the specified subpopulation
     Parameters
     __________
@@ -126,14 +124,14 @@ def get_variant_freq(var_allele_count: int, total_allele_count: int) -> float:
     float
         returns the variant allele frequency
     """
-    return var_allele_count / total_allele_count
+    return round(var_allele_count / total_allele_count, 6)
 
 
 def write_freq_to_file(
     output_path: str,
     variant: str,
     allele_freq: float,
-    filter: str,
+    filter_str: str,
     population_code: str,
 ):
     """function to write the variants allele frequency to a file\
@@ -163,12 +161,15 @@ def write_freq_to_file(
                 f"variant\tfilter\tpopulation\tvariant_allele_frequency\n"
             )
 
-        output_file.write(f"{variant}\t{filter}\t{population_code}\t{allele_freq}\n")
+        output_file.write(
+            f"{variant}\t{filter_str}\t{population_code}\t{allele_freq}\n"
+        )
 
 
 def run(args):
     """function that will run and get request from the gnomad website with"""
-    logger: object = loggers.create_logger(__name__, args.output)
+    print(__name__)
+    logger: object = create_logger(__name__, args.output)
 
     # removing any previous output file
     if os.path.exists(os.path.join(args.output, "variant_gnomAD_frequencies.txt")):
@@ -213,16 +214,32 @@ def run(args):
 
             filter_value: str = "exome"
 
+        # If the response from the exome data equals none then attempt to get the data for the genome filter
         else:
             genome_query_list = get_query(variant, "genome", dataset_choice)
 
             response = fetch(genome_query_list)
 
-            response_subset = response["data"]["variant"]["genome"]["populations"]
+            # if there is response for the genome data then log this to a file and move on to the next variant
+            if response["data"]["variant"]["genome"] == "None":
 
+                print(
+                    "There was no response for either the exome data or the genome data. Continuing to next variant..."
+                )
+
+                logger.error(
+                    f"no api response for either the exome or the genome data for the variant: {variant}"
+                )
+                continue
+
+            # subsetting the response just into the population data
+            response_subset: list = response["data"]["variant"]["genome"]["populations"]
+
+            # updating the filter value
             filter_value: str = "genome"
 
-        allele_tuple: tuple = get_variants(response_subset, args.pop_code)
+        # getting
+        allele_tuple: tuple = get_allele_counts(response_subset, args.pop_code)
 
         if allele_tuple[0] == 0 and allele_tuple[1] == 0:
             logger.warning(
@@ -237,7 +254,7 @@ def run(args):
             var_allele_freq: float = get_variant_freq(allele_tuple[0], allele_tuple[1])
 
             write_freq_to_file(
-                args.output, variant, var_allele_freq, filter, args.pop_code
+                args.output, variant, var_allele_freq, filter_value, args.pop_code
             )
 
         # updating the counter
