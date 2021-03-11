@@ -9,7 +9,7 @@ The goal of this project was to create a commandline interface that can be used 
 1. clone the repository
 
 2. run the following command to install the proper version of all required packages
- `pip install -r requirements.txt`
+   `pip install -r requirements.txt`
 
 _note_: The program was design for python 3.7 but should work for other version. You can always create a virtual environment with this version
 
@@ -29,3 +29,7 @@ _Breaking down the above command:_
 ## Note to remember:
 
 The program will form a log file in the specified output directory. If any variant is not found within the GnomAD database then it will write this variant in the log file
+
+## Thanks:
+
+This code was adapted from the code provided by [ressy](https://gist.github.com/ressy/6fd7f6ee6401ac8e703dc2709399869e) and the answer from BretSnoop at [stackexchange](https://bioinformatics.stackexchange.com/questions/933/is-there-public-restful-api-for-gnomad)
