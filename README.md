@@ -9,7 +9,7 @@ The goal of this project was to create a commandline interface that can be used 
 1. clone the repository
 
 2. run the following command to install the proper version of all required packages
-   ` ```````pip install -r requirements.txt`
+ `pip install -r requirements.txt`
 
 _note_: The program was design for python 3.7 but should work for other version. You can always create a virtual environment with this version
 
