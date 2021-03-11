@@ -8,6 +8,7 @@ import sys
 sys.path.append("../")
 
 import main
+from analysis_functions.allele_frequency_analysis import get_allele_counts
 
 
 print(sys.path)
@@ -50,7 +51,7 @@ def test_check_query_size():
 
 def test_check_allele_counts():
     """function to check that the allele counts are not the correct number"""
-    allele_count_tuple: tuple = main.get_allele_counts(response, pop_code)
+    allele_count_tuple: tuple = get_allele_counts(response, pop_code)
 
     assert allele_count_tuple[0] == 4 and allele_count_tuple[1] == 12
 

@@ -7,4 +7,3 @@ from .main import (
     get_variant_freq,
 )
 from .loggers.log_formatter import create_logger
-
